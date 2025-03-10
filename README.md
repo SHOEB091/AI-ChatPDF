@@ -1,36 +1,71 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+📌 Project Tech Stack
 
-## Getting Started
+🚀 Core Technologies
 
-First, run the development server:
+Frontend: Next.js
+Authentication: Clerk Auth
+Database: DrizzleORM + NeonDB
+Payments: Stripe Payment Gateway
+Storage: AWS S3
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+🧠 AI Tech Stack
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Vector Database: PineconeDB
+AI Framework: LangChain
+LLM Provider: OpenAI
+Deployment & SDK: Vercel AI SDK
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+🆕 New Concepts
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+🌍 Edge Runtime
 
-## Learn More
+Edge Runtime refers to the execution of code at the network edge, closer to end-users rather than on centralized servers. This reduces latency and improves performance by processing requests geographically near the user.
 
-To learn more about Next.js, take a look at the following resources:
+🔹 Example: Edge Runtime in Action
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+A Content Delivery Network (CDN) caches static assets like images, CSS, and JavaScript files at multiple edge locations worldwide. When a user requests a webpage, the CDN serves these assets from the nearest edge location, reducing load times.
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+🖥️ Example with Vercel Edge Functions
 
-## Deploy on Vercel
+Vercel provides Edge Functions, which enable serverless execution at the edge for faster responses.
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+export default function handler(req, res) {
+  res.status(200).json({ message: 'Hello from the Edge!' });
+}
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+📌 To deploy, place this function in the /api directory of your Vercel project. Access it via /api/hello to receive an edge-processed response.
+
+✅ Benefits of Edge Runtime
+
+- Reduced Latency: Processes requests closer to users, minimizing response times.
+- Improved Performance: Enhances real-time applications with faster data access.
+- Scalability: Distributes load across multiple edge locations to handle high traffic efficiently.
+
+Use Cases: Real-time chat, gaming, live streaming, and other low-latency applications.
+
+🤖 Retrieval-Augmented Generation (RAG)
+
+RAG is a technique that enhances text generation by incorporating information retrieval, allowing AI to produce more accurate and contextually relevant responses.
+
+🔹 How RAG Works
+
+1. Retrieval: Fetches relevant data from a large knowledge base based on the query.
+2. Augmentation: Combines retrieved data with the original query to provide context.
+3. Generation: Uses a text generation model (e.g., GPT-3) to create a refined response.
+
+📝 Example of RAG in Action
+
+Scenario: A user asks, "What are the benefits of Edge Runtime?"
+
+1. Retrieval: The system searches for documents on Edge Runtime.
+2. Augmentation: The relevant data is merged with the query.
+3. Generation: The AI produces an informed and detailed response.
+
+✅ Benefits of RAG
+
+- Improved Accuracy: Uses up-to-date, relevant data to generate responses.
+- Contextual Relevance: Ensures AI outputs are aligned with the retrieved knowledge.
+- Scalability: Works efficiently with vast knowledge bases, ideal for customer support and content generation.
+
+🚀 This project leverages Edge Runtime and RAG to enhance performance, scalability, and AI-driven interactions.
+
