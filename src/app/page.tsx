@@ -4,43 +4,49 @@ import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { UserButton, useAuth, useClerk } from "@clerk/nextjs";
 import Link from "next/link";
-import { ArrowRight, LogIn } from "lucide-react";
-// import FileUpload from "@/components/FileUpload";
-// import { checkSubscription } from "@/lib/subscription";
-// import SubscriptionButton from "@/components/SubscriptionButton";
-// import { db } from "@/lib/db";
-// import { chats } from "@/lib/db/schema";
-// import { eq } from "drizzle-orm";
+import { ArrowRight, LogIn, Loader2 } from "lucide-react";
+import FileUpload from "@/components/FileUpload";
+import SubscriptionButton from "@/components/SubscriptionButton";
+import { type DrizzleChat } from "@/lib/db/schema";
+import axios from "axios";
 
 export default function Home() {
-  const { userId } = useAuth();
+  const { userId, isLoaded } = useAuth();
   const { signOut } = useClerk();
   const isAuth = !!userId;
 
-  // Define a type for chat
-  type Chat = {
-    id: string;
-    [key: string]: any;
-  };
-
-  const [firstChat, setFirstChat] = useState<Chat | null>(null);
+  const [firstChat, setFirstChat] = useState<DrizzleChat | null>(null);
   const [isPro, setIsPro] = useState(false);
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     const fetchData = async () => {
       if (userId) {
-        // const subscriptionStatus = await checkSubscription();
-        // setIsPro(subscriptionStatus);
+        try {
+          setLoading(true);
 
-        // const userChats = await db.select().from(chats).where(eq(chats.userId, userId));
-        // if (userChats.length > 0) {
-        //   setFirstChat(userChats[0]);
-        // }
+          // Fetch subscription status
+          const subscriptionResponse = await axios.get("/api/subscription");
+          setIsPro(subscriptionResponse.data.isPro);
+
+          // Fetch user chats
+          const chatsResponse = await axios.get("/api/chats");
+          const userChats = chatsResponse.data.chats;
+          if (userChats.length > 0) {
+            setFirstChat(userChats[0]);
+          }
+        } catch (error) {
+          console.error("Error fetching user data:", error);
+        } finally {
+          setLoading(false);
+        }
       }
     };
 
-    fetchData();
-  }, [userId]);
+    if (isLoaded) {
+      fetchData();
+    }
+  }, [userId, isLoaded]);
 
   const handleSignOut = async () => {
     await signOut();
@@ -87,17 +93,17 @@ export default function Home() {
             </div>
           )}
 
-          <div className="flex mt-2">
-            {isAuth && firstChat && (
+          <div className="flex mt-2 justify-center">
+            {isAuth && !loading && (
               <>
-                <Link href={`/chat/${firstChat?.id}`}>
-                  <Button>
-                    Go to Chats <ArrowRight className="ml-2" />
-                  </Button>
-                </Link>
-                <div className="ml-3">
-                  {/* <SubscriptionButton isPro={isPro} /> */}
-                </div>
+                {firstChat ? (
+                  <Link href={`/chat/${firstChat.id}`}>
+                    <Button className="mr-3">
+                      Go to Chats <ArrowRight className="ml-2" />
+                    </Button>
+                  </Link>
+                ) : null}
+                <SubscriptionButton isPro={isPro} />
               </>
             )}
           </div>
@@ -107,21 +113,34 @@ export default function Home() {
             answer questions and understand research with AI
           </p>
 
+          {isAuth && !loading && (
+            <div className="mt-2">
+              <span className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium ${
+                isPro
+                  ? 'bg-green-100 text-green-800'
+                  : 'bg-blue-100 text-blue-800'
+              }`}>
+                {isPro ? '✨ Pro User' : '🆓 Free Plan'}
+              </span>
+            </div>
+          )}
+
           <div className="w-full mt-6">
-            {isAuth ? (
-              // <FileUpload />
-              <div className="p-6 border-2 border-dashed border-primary/30 rounded-lg bg-white/50 flex flex-col items-center justify-center">
-                <div className="w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center mb-3">
-                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <path d="M14 2H6C5.46957 2 4.96086 2.21071 4.58579 2.58579C4.21071 2.96086 4 3.46957 4 4V20C4 20.5304 4.21071 21.0391 4.58579 21.4142C4.96086 21.7893 5.46957 22 6 22H18C18.5304 22 19.0391 21.7893 19.4142 21.4142C19.7893 21.0391 20 20.5304 20 20V8L14 2Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                    <path d="M14 2V8H20" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                    <path d="M12 18V12" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                    <path d="M9 15L12 18L15 15" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                  </svg>
-                </div>
-                <p className="text-primary font-medium">Upload your PDF file</p>
-                <p className="text-sm text-slate-500 mt-1">Drag and drop or click to browse</p>
+            {!isLoaded ? (
+              <div className="flex justify-center items-center py-8">
+                <Loader2 className="h-8 w-8 animate-spin text-primary" />
+                <span className="ml-2 text-slate-600">Loading...</span>
               </div>
+            ) : isAuth ? (
+              <>
+                {loading ? (
+                  <div className="flex justify-center items-center py-4 mb-4">
+                    <Loader2 className="h-6 w-6 animate-spin text-primary" />
+                    <span className="ml-2 text-slate-600">Loading your data...</span>
+                  </div>
+                ) : null}
+                <FileUpload />
+              </>
             ) : (
               <Link href="/sign-in" className="w-full">
                 <Button className="w-full py-6 text-lg rounded-lg shadow-md hover:shadow-lg transition-all">

@@ -13,7 +13,7 @@ import { useRouter } from "next/navigation";
 const FileUpload = () => {
   const router = useRouter();
   const [uploading, setUploading] = React.useState(false);
-  const { mutate, isLoading } = useMutation({
+  const mutation = useMutation({
     mutationFn: async ({
       file_key,
       file_name,
@@ -21,13 +21,16 @@ const FileUpload = () => {
       file_key: string;
       file_name: string;
     }) => {
-      const response = await axios.post("/api/create-chat", {
+      const response = await axios.post<{ chat_id: number }>("/api/create-chat", {
         file_key,
         file_name,
       });
       return response.data;
     },
   });
+
+  const { mutate } = mutation;
+  const isLoading = mutation.isPending;
 
   const { getRootProps, getInputProps } = useDropzone({
     accept: { "application/pdf": [".pdf"] },

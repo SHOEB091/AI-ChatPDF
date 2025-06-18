@@ -1,0 +1,16 @@
+1. Obtain the PDF
+2. Split and segment the PDF  // here langchain comes in work with 
+3. vectorise the embed individual documents
+4, store the vectors into pinecodedb
+
+
+--search--
+5. embed the query
+6. query the pineconedb for similar vectors
+7. extact out the metadata of the similar 
+8. feed metadata into openai prompt
+
+
+PineCone Terms 
+index -> database
+namespace -> segment pdf vector spaces 
