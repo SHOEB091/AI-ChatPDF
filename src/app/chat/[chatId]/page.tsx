@@ -40,12 +40,16 @@ async function getChatData(chatId: string, userId: string) {
 }
 
 export default async function ChatPage({ params }: PageProps) {
-  const { userId } = await auth();
+  const [{ userId }, resolvedParams] = await Promise.all([
+    auth(),
+    Promise.resolve(params)
+  ]);
+
   if (!userId) {
     redirect("/sign-in");
   }
 
-  const chatId = params.chatId;
+  const chatId = resolvedParams.chatId;
   if (!chatId || isNaN(parseInt(chatId))) {
     redirect("/");
   }
@@ -57,28 +61,38 @@ export default async function ChatPage({ params }: PageProps) {
     }
 
     // TODO: Replace with actual pro status check
-    const isPro = false; 
+    const isPro = false;
 
     return (
-      <div className="flex max-h-screen overflow-scroll">
-        <div className="flex w-full max-h-screen overflow-scroll">
-          {/* Chat Sidebar */}
-          <div className="flex-[1] max-w-xs">
-            <ChatSideBar 
+      <div className="flex-1 h-screen">
+        {/* Main container with max width and proper spacing */}
+        <div className="flex h-[calc(100vh-2rem)] max-w-screen-2xl mx-auto my-4 gap-4 px-4">
+          {/* Left Sidebar */}
+          <div className="w-64 flex-shrink-0 bg-gray-50 rounded-lg shadow-sm border border-gray-200">
+            <ChatSideBar
               chats={data.allChats}
               chatId={parseInt(chatId)}
               isPro={isPro}
             />
           </div>
 
-          {/* PDF Viewer */}
-          <div className="max-h-screen p-4 flex-[2]">
-            <PDFViewer pdf_url={data.currentChat.pdfUrl} />
+          {/* Center PDF Viewer */}
+          <div className="flex-1 bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
+            <PDFViewer 
+              pdf_url={data.currentChat.pdfUrl}
+            />
           </div>
 
-          {/* Chat Component */}
-          <div className="flex-[2] border-l-4 border-l-slate-200">
-            <ChatComponent chatId={parseInt(chatId)} />
+          {/* Right Chat Section */}
+          <div className="w-96 flex-shrink-0 bg-gray-50 rounded-lg shadow-sm border border-gray-200 overflow-hidden">
+            <div className="h-full flex flex-col">
+              <div className="p-4 border-b border-gray-200">
+                <h2 className="text-lg font-semibold text-gray-800">Chat</h2>
+              </div>
+              <div className="flex-1 overflow-hidden">
+                <ChatComponent chatId={parseInt(chatId)} />
+              </div>
+            </div>
           </div>
         </div>
       </div>

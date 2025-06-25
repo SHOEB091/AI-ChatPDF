@@ -11,7 +11,8 @@
     "migrate:roles": "tsx migrations/add-message-roles.ts",
     "migrate:init": "tsx migrations/init-db.ts",
     "check-env": "tsx scripts/check-env.ts",
-    "check-db": "tsx scripts/check-db.ts"
+    "check-db": "tsx scripts/check-db.ts",
+    "reset": "rm -rf .next && npm run dev"
   },
   "dependencies": {
     "@ai-sdk/openai": "^1.3.22",
@@ -63,10 +64,14 @@
     "@types/pdf-parse": "^1.1.5",
     "@types/react": "^19",
     "@types/react-dom": "^19",
+    "buffer": "^6.0.3",
+    "crypto-browserify": "^3.12.1",
     "eslint": "^9",
     "eslint-config-next": "15.2.1",
+    "stream-browserify": "^3.0.0",
     "tailwindcss": "^4",
     "tsx": "^4.20.3",
-    "typescript": "^5"
+    "typescript": "^5",
+    "url": "^0.11.4"
   }
 }

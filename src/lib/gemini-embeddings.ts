@@ -32,7 +32,8 @@ export async function getEmbeddings(text: string) {
 
     console.log("Getting embeddings for text of length:", text.length);
     
-    const model = genAI.getGenerativeModel({ model: "embedding-001" });
+    // Use the correct model name format
+    const model = genAI.getGenerativeModel({ model: "models/embedding-001" });
     const result = await model.embedContent(text);
     const embedding = await result.embedding;
 
