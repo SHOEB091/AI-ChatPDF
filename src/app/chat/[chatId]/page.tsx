@@ -2,73 +2,89 @@ import ChatComponent from "@/components/ChatComponent";
 import ChatSideBar from "@/components/ChatSideBar";
 import PDFViewer from "@/components/PDFViewer";
 import { db } from "@/lib/db";
-import { chats, userSubscriptions } from "@/lib/db/schema";
+import { chats } from "@/lib/db/schema";
 import { auth } from "@clerk/nextjs/server";
 import { eq } from "drizzle-orm";
 import { redirect } from "next/navigation";
 import React from "react";
 
-type Props = {
+interface PageProps {
   params: {
     chatId: string;
   };
-};
+}
 
-const ChatPage = async ({ params: { chatId } }: Props) => {
+async function getChatData(chatId: string, userId: string) {
+  try {
+    // Get current chat
+    const currentChat = await db
+      .select()
+      .from(chats)
+      .where(eq(chats.id, parseInt(chatId)))
+      .limit(1);
+
+    // Get all chats for the sidebar
+    const allChats = await db
+      .select()
+      .from(chats)
+      .where(eq(chats.userId, userId));
+
+    return {
+      currentChat: currentChat[0],
+      allChats
+    };
+  } catch (error) {
+    console.error("Error fetching chat data:", error);
+    return null;
+  }
+}
+
+export default async function ChatPage({ params }: PageProps) {
   const { userId } = await auth();
   if (!userId) {
-    return redirect("/sign-in");
-  }
-  const _chats = await db.select().from(chats).where(eq(chats.userId, userId));
-  if (!_chats) {
-    return redirect("/");
-  }
-  if (!_chats.find((chat) => chat.id === parseInt(chatId))) {
-    return redirect("/");
+    redirect("/sign-in");
   }
 
-  const currentChat = _chats.find((chat) => chat.id === parseInt(chatId));
-
-  // Check subscription status
-  const DAY_IN_MS = 1000 * 60 * 60 * 24;
-  let isPro = false;
+  const chatId = params.chatId;
+  if (!chatId || isNaN(parseInt(chatId))) {
+    redirect("/");
+  }
 
   try {
-    const _userSubscriptions = await db
-      .select()
-      .from(userSubscriptions)
-      .where(eq(userSubscriptions.userId, userId));
-
-    if (_userSubscriptions[0]) {
-      const userSubscription = _userSubscriptions[0];
-      const isValid =
-        userSubscription.stripePriceId &&
-        userSubscription.stripeCurrentPeriodEnd?.getTime()! + DAY_IN_MS >
-          Date.now();
-      isPro = !!isValid;
+    const data = await getChatData(chatId, userId);
+    if (!data?.currentChat) {
+      redirect("/");
     }
-  } catch (error) {
-    console.error("Error checking subscription:", error);
-  }
 
-  return (
-    <div className="flex max-h-screen overflow-scroll">
-      <div className="flex w-full max-h-screen overflow-scroll">
-        {/* chat sidebar */}
-        <div className="flex-[1] max-w-xs">
-          <ChatSideBar chats={_chats} chatId={parseInt(chatId)} isPro={isPro} />
-        </div>
-        {/* pdf viewer */}
-        <div className="max-h-screen p-4 oveflow-scroll flex-[5]">
-          <PDFViewer pdf_url={currentChat?.pdfUrl || ""} />
-        </div>
-        {/* chat component */}
-        <div className="flex-[3] border-l-4 border-l-slate-200">
-          <ChatComponent chatId={parseInt(chatId)} />
+    // TODO: Replace with actual pro status check
+    const isPro = false; 
+
+    return (
+      <div className="flex max-h-screen overflow-scroll">
+        <div className="flex w-full max-h-screen overflow-scroll">
+          {/* Chat Sidebar */}
+          <div className="flex-[1] max-w-xs">
+            <ChatSideBar 
+              chats={data.allChats}
+              chatId={parseInt(chatId)}
+              isPro={isPro}
+            />
+          </div>
+
+          {/* PDF Viewer */}
+          <div className="max-h-screen p-4 flex-[2]">
+            <PDFViewer pdf_url={data.currentChat.pdfUrl} />
+          </div>
+
+          {/* Chat Component */}
+          <div className="flex-[2] border-l-4 border-l-slate-200">
+            <ChatComponent chatId={parseInt(chatId)} />
+          </div>
         </div>
       </div>
-    </div>
-  );
-};
-
-export default ChatPage;
+    );
+  } catch (error) {
+    console.error("Error in ChatPage:", error);
+    redirect("/");
+  }
+}

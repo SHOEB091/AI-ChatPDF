@@ -1,6 +1,6 @@
 import { Pinecone } from "@pinecone-database/pinecone";
 import { convertToAscii } from "./utils";
-import { getEmbeddings } from "./embeddings";
+import { getEmbeddings } from "./gemini-embeddings";
 
 export async function getMatchesFromEmbeddings(
   embeddings: number[],

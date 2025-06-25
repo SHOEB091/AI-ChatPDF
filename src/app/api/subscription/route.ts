@@ -26,8 +26,8 @@ export async function GET() {
     const userSubscription = _userSubscriptions[0];
 
     const isValid =
-      userSubscription.stripePriceId &&
-      userSubscription.stripeCurrentPeriodEnd?.getTime()! + DAY_IN_MS >
+      userSubscription.razorpayPlanId &&
+      userSubscription.razorpayCurrentPeriodEnd?.getTime()! + DAY_IN_MS >
         Date.now();
 
     return NextResponse.json({ isPro: !!isValid }, { status: 200 });

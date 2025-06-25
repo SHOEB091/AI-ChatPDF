@@ -13,19 +13,26 @@ import { useRouter } from "next/navigation";
 const FileUpload = () => {
   const router = useRouter();
   const [uploading, setUploading] = React.useState(false);
+  interface CreateChatResponse {
+    chat_id: number;
+  }
+
+  interface CreateChatInput {
+    file_key: string;
+    file_name: string;
+  }
+
   const mutation = useMutation({
-    mutationFn: async ({
-      file_key,
-      file_name,
-    }: {
-      file_key: string;
-      file_name: string;
-    }) => {
-      const response = await axios.post<{ chat_id: number }>("/api/create-chat", {
-        file_key,
-        file_name,
-      });
-      return response.data;
+    mutationFn: async (input: CreateChatInput) => {
+      try {
+        console.log('Sending request to create chat:', input);
+        const response = await axios.post<CreateChatResponse>("/api/create-chat", input);
+        console.log('Create chat response:', response.data);
+        return response.data;
+      } catch (error: any) {
+        console.error('Error in create chat mutation:', error?.response?.data || error);
+        throw error;
+      }
     },
   });
 
@@ -45,24 +52,31 @@ const FileUpload = () => {
 
       try {
         setUploading(true);
+        console.log("Starting file upload...");
         const data = await uploadToS3(file);
-        console.log("meow", data);
+        console.log("S3 upload response:", data);
+        
         if (!data?.file_key || !data.file_name) {
-          toast.error("Something went wrong");
+          console.error("Invalid S3 upload response:", data);
+          toast.error("Something went wrong with file upload");
           return;
         }
+        
+        console.log("Creating chat with file:", { file_key: data.file_key, file_name: data.file_name });
         mutate(data, {
           onSuccess: ({ chat_id }) => {
+            console.log("Chat created successfully:", chat_id);
             toast.success("Chat created!");
             router.push(`/chat/${chat_id}`);
           },
-          onError: (err) => {
-            toast.error("Error creating chat");
-            console.error(err);
+          onError: (err: any) => {
+            console.error("Failed to create chat:", err?.response?.data || err);
+            toast.error(err?.response?.data?.error || "Error creating chat");
           },
         });
-      } catch (error) {
-        console.log(error);
+      } catch (error: any) {
+        console.error("File upload failed:", error?.message || error);
+        toast.error(error?.message || "Failed to upload file");
       } finally {
         setUploading(false);
       }

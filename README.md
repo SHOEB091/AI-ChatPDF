@@ -5,7 +5,7 @@
 Frontend: Next.js
 Authentication: Clerk Auth
 Database: DrizzleORM + NeonDB
-Payments: Stripe Payment Gateway
+Payments: Razorpay Payment Gateway
 Storage: AWS S3
 
 🧠 AI Tech Stack
@@ -66,6 +66,37 @@ Scenario: A user asks, "What are the benefits of Edge Runtime?"
 - Improved Accuracy: Uses up-to-date, relevant data to generate responses.
 - Contextual Relevance: Ensures AI outputs are aligned with the retrieved knowledge.
 - Scalability: Works efficiently with vast knowledge bases, ideal for customer support and content generation.
+
+## Setup Instructions
+
+### Environment Configuration
+
+1. Clone the repository
+2. Copy `.env.example` to `.env`:
+   ```bash
+   cp .env.example .env
+   ```
+3. Fill in your environment variables in the `.env` file:
+   - Clerk authentication keys
+   - Database connection string
+   - AWS S3 credentials
+   - Pinecone vector database credentials
+   - OpenAI API key
+   - Razorpay payment gateway credentials
+
+### Install Dependencies
+
+```bash
+npm install --legacy-peer-deps
+```
+
+### Run Development Server
+
+```bash
+npm run dev
+```
+
+For Razorpay integration details, see the [Razorpay Integration Guide](docs/razorpay-integration.md).
 
 🚀 This project leverages Edge Runtime and RAG to enhance performance, scalability, and AI-driven interactions.
 

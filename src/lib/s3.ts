@@ -19,8 +19,8 @@ export async function uploadToS3(file: File) {
     const s3Client = new S3Client({
       region: process.env.NEXT_PUBLIC_AWS_REGION,
       credentials: {
-        accessKeyId: process.env.NEXT_PUBLIC_AWS_ACCESS_KEY_ID,
-        secretAccessKey: process.env.NEXT_PUBLIC_AWS_SECRET_ACCESS_KEY,
+        accessKeyId: process.env.NEXT_PUBLIC_AWS_ACCESS_KEY_ID as string,
+        secretAccessKey: process.env.NEXT_PUBLIC_AWS_SECRET_ACCESS_KEY as string,
       },
     });
 
@@ -28,7 +28,7 @@ export async function uploadToS3(file: File) {
     const fileKey = `${Date.now()}-${fileName}`;
 
     const { url, fields } = await createPresignedPost(s3Client, {
-      Bucket: process.env.NEXT_PUBLIC_AWS_BUCKET_NAME,
+      Bucket: process.env.NEXT_PUBLIC_AWS_BUCKET_NAME as string,
       Key: fileKey,
       Conditions: [
         ["content-length-range", 0, 10 * 1024 * 1024], // up to 10 MB
