@@ -14,17 +14,70 @@ import { Message as AIMessage } from "ai";
 // Helper function to create a streaming response in the format expected by useChat
 function createStreamResponse(content: string) {
   const encoder = new TextEncoder();
+  
+  // Create a stream that mimics the exact format expected by the AI SDK v4.3.16
   const stream = new ReadableStream({
     async start(controller) {
-      // Format required by Vercel AI SDK
-      controller.enqueue(encoder.encode(`data: ${JSON.stringify({
-        id: Date.now().toString(),
-        role: "assistant", 
-        content: content,
-        createdAt: new Date()
-      })}\n\n`));
-      controller.enqueue(encoder.encode("data: [DONE]\n\n"));
-      controller.close();
+      try {
+        // Generate a unique ID for this message
+        const messageId = `chatcmpl-${Date.now()}`;
+        
+        // First chunk: Start of the OpenAI format (role)
+        controller.enqueue(encoder.encode(`data: ${JSON.stringify({
+          id: messageId,
+          object: "chat.completion.chunk",
+          created: Math.floor(Date.now()/1000),
+          model: "gemini-1.5-flash-simulation",
+          choices: [{
+            index: 0,
+            delta: {
+              role: "assistant"
+            },
+            finish_reason: null
+          }]
+        })}\n\n`));
+        
+        // Small delay to let the frontend process the first chunk
+        await new Promise(resolve => setTimeout(resolve, 5));
+        
+        // Second chunk: The actual content (all at once to avoid parsing issues)
+        controller.enqueue(encoder.encode(`data: ${JSON.stringify({
+          id: messageId,
+          object: "chat.completion.chunk", 
+          created: Math.floor(Date.now()/1000),
+          model: "gemini-1.5-flash-simulation",
+          choices: [{
+            index: 0,
+            delta: {
+              content: content
+            },
+            finish_reason: null
+          }]
+        })}\n\n`));
+        
+        // Small delay before sending the final chunk
+        await new Promise(resolve => setTimeout(resolve, 5));
+        
+        // Final chunk: Finish reason
+        controller.enqueue(encoder.encode(`data: ${JSON.stringify({
+          id: messageId,
+          object: "chat.completion.chunk",
+          created: Math.floor(Date.now()/1000),
+          model: "gemini-1.5-flash-simulation",
+          choices: [{
+            index: 0,
+            delta: {},
+            finish_reason: "stop"
+          }]
+        })}\n\n`));
+        
+        // Done marker
+        controller.enqueue(encoder.encode("data: [DONE]\n\n"));
+      } catch (error) {
+        console.error("Error in stream generation:", error);
+      } finally {
+        controller.close();
+      }
     }
   });
   
@@ -219,31 +272,28 @@ export async function POST(req: Request) {
         );
       }
     }
-  } catch (error: any) {
+  }  catch (error: any) {
     console.error("Chat API error:", {
       name: error?.name || 'Unknown error',
       message: error?.message || 'No error message available',
       stack: error?.stack
     });
     
+    // For errors that can be recovered from, try to return a valid response
+    let fallbackContent = "";
+    
     // Check for specific errors
     if (error?.message?.includes('SAFETY')) {
-      return NextResponse.json(
-        { error: 'Content was filtered for safety reasons' },
-        { status: 400 }
-      );
+      fallbackContent = "I'm sorry, but I can't provide a response to that query due to content safety guidelines.";
+    } else if (error?.message?.includes('input too long')) {
+      fallbackContent = "I'm sorry, but your question was too long for me to process. Could you please make it shorter?";
+    } else {
+      fallbackContent = "I apologize, but I encountered an issue processing your request. Please try again in a moment.";
     }
     
-    if (error?.message?.includes('input too long')) {
-      return NextResponse.json(
-        { error: 'The input was too long for the model to process' },
-        { status: 400 }
-      );
-    }
-
-    return NextResponse.json(
-      { error: 'An unexpected error occurred. Please try again later.' },
-      { status: 500 }
-    );
+    console.log("Returning fallback response:", fallbackContent);
+    
+    // Return the fallback response in a streaming format
+    return createStreamResponse(fallbackContent);
   }
 }
