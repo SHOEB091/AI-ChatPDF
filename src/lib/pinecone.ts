@@ -8,8 +8,6 @@ import {
 } from "@pinecone-database/doc-splitter";
 import { getEmbeddings } from "./gemini-embeddings";
 import { convertToAscii } from "./utils";
-import { Document as LangChainDocument } from "@langchain/core/documents";
-
 // Define PDFPage interface
 type PDFPage = {
   pageContent: string;
@@ -91,7 +89,8 @@ export const truncateStringByBytes = (str: string, bytes: number) => {
 };
 
 async function prepareDocument(page: PDFPage) {
-  let { pageContent, metadata } = page;
+  const { metadata } = page;
+  let { pageContent } = page;
   pageContent = pageContent.replace(/\n/g, " ").trim();
   
   // split the docs into smaller chunks
@@ -164,8 +163,8 @@ export async function loadS3IntoPinecone(fileKey: string) {
     const indexName = process.env.PINECONE_INDEX_NAME!;
     const pineconeIndex = client.index(indexName);
     
-    // Create namespace from file key
-    const namespace = convertToAscii(fileKey);
+    // Create namespace from file key and use it for vector indexing
+    const namespaceValue = convertToAscii(fileKey);
     
     // Batch upsert vectors in chunks of 100 to avoid rate limits
     const BATCH_SIZE = 100;
@@ -178,8 +177,9 @@ export async function loadS3IntoPinecone(fileKey: string) {
     console.log("Successfully uploaded all vectors to Pinecone");
     
     return documents[0];
-  } catch (error: any) {
-    console.error("Error in loadS3IntoPinecone:", error?.message || error);
+  } catch (error: unknown) {
+    const errorMessage = error instanceof Error ? error.message : String(error);
+    console.error("Error in loadS3IntoPinecone:", errorMessage);
     throw error;
   }
 }

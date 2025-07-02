@@ -49,7 +49,7 @@ export const PREMIUM_PLAN = {
   description: "Unlimited PDF sessions!",
   amount: 2000, // ₹20 in paise
   currency: "INR", 
-  period: "monthly" as "monthly", // Type assertion to fix type error
+  period: "monthly" as const, // Proper const assertion
   interval: 1
 };
 

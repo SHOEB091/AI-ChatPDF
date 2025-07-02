@@ -45,22 +45,23 @@ export async function getEmbeddings(text: string) {
 
     // Convert embedding to array of numbers to match Pinecone's expected format
     return embedding.values;
-  } catch (error: any) {
-    console.error("Error getting embeddings:", error?.message || error);
+  } catch (error: unknown) {
+    const errorMessage = error instanceof Error ? error.message : String(error);
+    console.error("Error getting embeddings:", errorMessage);
     
-    if (error?.message?.includes("quota")) {
+    if (errorMessage.includes("quota")) {
       throw new Error(
         "Gemini API quota exceeded. Please check your quota at https://console.cloud.google.com/apis/dashboard"
       );
     }
     
-    if (error?.message?.includes("rate limit")) {
+    if (errorMessage.includes("rate limit")) {
       // Wait for 1 second and try again
       console.log("Rate limited, waiting 1 second...");
       await wait(1000);
       return getEmbeddings(text);
     }
 
-    throw new Error(`Failed to get embeddings: ${error?.message || 'Unknown error'}`);
+    throw new Error(`Failed to get embeddings: ${errorMessage}`);
   }
 }

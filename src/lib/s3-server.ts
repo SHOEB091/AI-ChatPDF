@@ -1,5 +1,7 @@
 import { S3 } from "@aws-sdk/client-s3";
 import fs from "fs";
+import { homedir } from 'os';
+import { Readable } from "stream";
 export async function downloadFromS3(file_key: string): Promise<string> {
   return new Promise(async (resolve, reject) => {
     try {
@@ -31,16 +33,16 @@ export async function downloadFromS3(file_key: string): Promise<string> {
 
       const obj = await s3.getObject(params);
       // Save to the user's Downloads folder
-      const homeDir = require('os').homedir();
+      const homeDir = homedir();
       const file_name = `${homeDir}/Downloads/elliott${Date.now().toString()}.pdf`;
 
-      if (obj.Body instanceof require("stream").Readable) {
+      if (obj.Body instanceof Readable) {
         // AWS-SDK v3 has some issues with their typescript definitions, but this works
         // https://github.com/aws/aws-sdk-js-v3/issues/843
         //open the writable stream and write the file
         const file = fs.createWriteStream(file_name);
-        file.on("open", function (fd) {
-          // @ts-ignore
+        file.on("open", function (_unused) {
+          // @ts-expect-error AWS-SDK v3 has some issues with their typescript definitions
           obj.Body?.pipe(file).on("finish", () => {
             return resolve(file_name);
           });
