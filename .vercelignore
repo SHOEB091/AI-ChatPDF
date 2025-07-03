@@ -1,0 +1,2 @@
+# Ignore ESLint configuration during deployment
+eslint.config.mjs

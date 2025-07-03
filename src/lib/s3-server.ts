@@ -41,7 +41,7 @@ export async function downloadFromS3(file_key: string): Promise<string> {
         // https://github.com/aws/aws-sdk-js-v3/issues/843
         //open the writable stream and write the file
         const file = fs.createWriteStream(file_name);
-        file.on("open", function (_unused) {
+        file.on("open", function() {
           // @ts-expect-error AWS-SDK v3 has some issues with their typescript definitions
           obj.Body?.pipe(file).on("finish", () => {
             return resolve(file_name);

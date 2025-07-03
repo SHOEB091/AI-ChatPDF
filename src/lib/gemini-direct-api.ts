@@ -48,8 +48,11 @@ export async function generateTextDirect(prompt: string, apiKey: string): Promis
     }
     
     throw new Error(`Invalid response from Gemini API: ${JSON.stringify(response.data)}`);
-  } catch (error: any) {
-    console.error("Direct API call failed:", error?.response?.data || error?.message || error);
+  } catch (error: unknown) {
+    const errorObj = error as { response?: { data?: unknown }, message?: string };
+    console.error("Direct API call failed:", 
+      errorObj.response?.data || 
+      (error instanceof Error ? error.message : String(error)));
     throw error;
   }
 }
@@ -69,12 +72,15 @@ export async function listAvailableModels(apiKey: string): Promise<string[]> {
     });
     
     if (response.status === 200 && response.data && response.data.models) {
-      return response.data.models.map((model: any) => model.name);
+      return response.data.models.map((model: { name: string }) => model.name);
     }
     
     return [];
-  } catch (error: any) {
-    console.error("Failed to list models:", error?.response?.data || error?.message || error);
+  } catch (error: unknown) {
+    const errorObj = error as { response?: { data?: unknown }, message?: string };
+    console.error("Failed to list models:", 
+      errorObj.response?.data || 
+      (error instanceof Error ? error.message : String(error)));
     return [];
   }
 }

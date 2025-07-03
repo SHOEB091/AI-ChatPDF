@@ -93,7 +93,7 @@ export async function getContext(query: string, fileKey: string) {
       pageNumber: number;
     };
 
-    let docs = qualifyingDocs.map((match) => (match.metadata as Metadata).text);
+    const docs = qualifyingDocs.map((match) => (match.metadata as Metadata).text);
     
     // Return concatenated text up to 3000 chars
     const result = docs.join("\n").substring(0, 3000);

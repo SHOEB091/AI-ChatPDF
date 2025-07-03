@@ -163,15 +163,22 @@ export async function loadS3IntoPinecone(fileKey: string) {
     const indexName = process.env.PINECONE_INDEX_NAME!;
     const pineconeIndex = client.index(indexName);
     
-    // Create namespace from file key and use it for vector indexing
-    const namespaceValue = convertToAscii(fileKey);
+    // Convert file key to a valid namespace format
+    const namespace = convertToAscii(fileKey);
+    console.log("Using namespace:", namespace);
+    
+    // Add namespace to each vector record
+    const vectorsWithNamespace = vectors.map(vector => ({
+      ...vector,
+      namespace
+    }));
     
     // Batch upsert vectors in chunks of 100 to avoid rate limits
     const BATCH_SIZE = 100;
-    for (let i = 0; i < vectors.length; i += BATCH_SIZE) {
-      const batch = vectors.slice(i, i + BATCH_SIZE);
+    for (let i = 0; i < vectorsWithNamespace.length; i += BATCH_SIZE) {
+      const batch = vectorsWithNamespace.slice(i, i + BATCH_SIZE);
       await pineconeIndex.upsert(batch);
-      console.log(`Uploaded batch ${Math.floor(i/BATCH_SIZE) + 1} of ${Math.ceil(vectors.length/BATCH_SIZE)}`);
+      console.log(`Uploaded batch ${Math.floor(i/BATCH_SIZE) + 1} of ${Math.ceil(vectorsWithNamespace.length/BATCH_SIZE)}`);
     }
     
     console.log("Successfully uploaded all vectors to Pinecone");
