@@ -28,10 +28,6 @@ const nextConfig = {
       child_process: false,
       http: false,
       https: false,
-      stream: require.resolve("stream-browserify"),
-      crypto: require.resolve("crypto-browserify"),
-      buffer: require.resolve("buffer"),
-      url: require.resolve("url"),
     };
     
     return config;
@@ -41,4 +37,4 @@ const nextConfig = {
   serverExternalPackages: ["@pinecone-database/pinecone"]
 };
 
-export default nextConfig;
+module.exports = nextConfig;
