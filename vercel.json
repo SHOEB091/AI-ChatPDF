@@ -1,10 +1,4 @@
 {
-  "typescript": {
-    "ignoreBuildErrors": true
-  },
-  "eslint": {
-    "ignoreDuringBuilds": true
-  },
   "buildCommand": "npm run build-vercel",
   "installCommand": "npm install --legacy-peer-deps",
   "env": {
