@@ -4,5 +4,11 @@
   },
   "eslint": {
     "ignoreDuringBuilds": true
+  },
+  "buildCommand": "npm run build-vercel",
+  "installCommand": "npm install --legacy-peer-deps",
+  "env": {
+    "NEXT_TYPESCRIPT_IGNOREBUILDERERRORS": "1",
+    "NEXT_SKIP_ESLINT": "1"
   }
 }

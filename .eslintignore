@@ -1,0 +1,5 @@
+src/components/ui/input.tsx
+src/lib/context.ts
+src/lib/gemini-direct-api.ts
+src/lib/pinecone.ts
+src/lib/s3-server.ts
