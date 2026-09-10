@@ -36,16 +36,19 @@ const SubscriptionButton = (props: Props) => {
           image: response.data.image,
           order_id: response.data.id,
           subscription_id: response.data.subscription_id,
-          handler: (paymentResponse: any) => {
+          handler: async (paymentResponse: any) => {
             // Payment success
             console.log("Payment successful", paymentResponse);
-            
-            // Create a subscription if plan_id is available
-            if (response.data.plan_id) {
-              console.log("Creating subscription...");
-              // In a real app, you would create a subscription here
+
+            try {
+              // Create subscription record directly since webhooks don't work on localhost
+              console.log("Creating subscription record...");
+              const subscriptionResponse = await axios.post("/api/subscription");
+              console.log("Subscription created:", subscriptionResponse.data);
+            } catch (error) {
+              console.error("Failed to create subscription:", error);
             }
-            
+
             window.location.href = `${window.location.origin}/`;
           },
           prefill: {

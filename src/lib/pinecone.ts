@@ -118,8 +118,12 @@ async function embedDocument(doc: Document) {
     const embeddings = await getEmbeddings(doc.metadata.text as string);
     const hash = md5(doc.metadata.text as string);
 
+    console.log("Embeddings type during storage:", typeof embeddings, "isArray:", Array.isArray(embeddings));
+
     // Convert embeddings to number array and ensure it's the correct format for Pinecone
-    const embeddingArray = Object.values(embeddings).map(Number);
+    const embeddingArray = Array.isArray(embeddings) ? embeddings : Object.values(embeddings).map(Number);
+
+    console.log("Final embedding array length:", embeddingArray.length);
 
     return {
       id: hash,
@@ -166,13 +170,17 @@ export async function loadS3IntoPinecone(fileKey: string) {
     
     // Create namespace from file key
     const namespace = convertToAscii(fileKey);
-    
+    console.log("Using namespace:", namespace);
+
+    // Get the namespace index
+    const namespaceIndex = pineconeIndex.namespace(namespace);
+
     // Batch upsert vectors in chunks of 100 to avoid rate limits
     const BATCH_SIZE = 100;
     for (let i = 0; i < vectors.length; i += BATCH_SIZE) {
       const batch = vectors.slice(i, i + BATCH_SIZE);
-      await pineconeIndex.upsert(batch);
-      console.log(`Uploaded batch ${Math.floor(i/BATCH_SIZE) + 1} of ${Math.ceil(vectors.length/BATCH_SIZE)}`);
+      await namespaceIndex.upsert(batch);
+      console.log(`Uploaded batch ${Math.floor(i/BATCH_SIZE) + 1} of ${Math.ceil(vectors.length/BATCH_SIZE)} to namespace ${namespace}`);
     }
     
     console.log("Successfully uploaded all vectors to Pinecone");

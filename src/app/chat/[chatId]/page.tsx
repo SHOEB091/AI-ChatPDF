@@ -1,8 +1,9 @@
 import ChatComponent from "@/components/ChatComponent";
 import ChatSideBar from "@/components/ChatSideBar";
 import PDFViewer from "@/components/PDFViewer";
+import ChatLayout from "@/components/ChatLayout";
 import { db } from "@/lib/db";
-import { chats } from "@/lib/db/schema";
+import { chats, userSubscriptions } from "@/lib/db/schema";
 import { auth } from "@clerk/nextjs/server";
 import { eq } from "drizzle-orm";
 import { redirect } from "next/navigation";
@@ -39,13 +40,46 @@ async function getChatData(chatId: string, userId: string) {
   }
 }
 
+async function checkSubscription(userId: string) {
+  try {
+    const DAY_IN_MS = 1000 * 60 * 60 * 24;
+
+    const _userSubscriptions = await db
+      .select()
+      .from(userSubscriptions)
+      .where(eq(userSubscriptions.userId, userId));
+
+    if (!_userSubscriptions[0]) {
+      return false;
+    }
+
+    const userSubscription = _userSubscriptions[0];
+
+    // For direct payments, we don't require razorpayPlanId
+    // We just need a valid razorpayCurrentPeriodEnd
+    const isValid =
+      userSubscription.razorpayCurrentPeriodEnd &&
+      userSubscription.razorpayCurrentPeriodEnd.getTime() + DAY_IN_MS >
+        Date.now();
+
+    return !!isValid;
+  } catch (error) {
+    console.error("Error checking subscription:", error);
+    return false;
+  }
+}
+
 export default async function ChatPage({ params }: PageProps) {
-  const { userId } = await auth();
+  const [{ userId }, resolvedParams] = await Promise.all([
+    auth(),
+    Promise.resolve(params)
+  ]);
+
   if (!userId) {
     redirect("/sign-in");
   }
 
-  const chatId = params.chatId;
+  const chatId = resolvedParams.chatId;
   if (!chatId || isNaN(parseInt(chatId))) {
     redirect("/");
   }
@@ -56,32 +90,28 @@ export default async function ChatPage({ params }: PageProps) {
       redirect("/");
     }
 
-    // TODO: Replace with actual pro status check
-    const isPro = false; 
+    // Check actual subscription status
+    const isPro = await checkSubscription(userId);
 
     return (
-      <div className="flex max-h-screen overflow-scroll">
-        <div className="flex w-full max-h-screen overflow-scroll">
-          {/* Chat Sidebar */}
-          <div className="flex-[1] max-w-xs">
-            <ChatSideBar 
-              chats={data.allChats}
-              chatId={parseInt(chatId)}
-              isPro={isPro}
-            />
-          </div>
+      <ChatLayout
+        sidebar={
+          <ChatSideBar
+            chats={data.allChats}
+            chatId={parseInt(chatId)}
+            isPro={isPro}
+          />
+        }
+        pdfViewer={
+          <PDFViewer
+            pdf_url={data.currentChat.pdfUrl}
+          />
+        }
+        chat={<ChatComponent chatId={parseInt(chatId)} />}
+        pdfName={data.currentChat.pdfName}
+      />
 
-          {/* PDF Viewer */}
-          <div className="max-h-screen p-4 flex-[2]">
-            <PDFViewer pdf_url={data.currentChat.pdfUrl} />
-          </div>
 
-          {/* Chat Component */}
-          <div className="flex-[2] border-l-4 border-l-slate-200">
-            <ChatComponent chatId={parseInt(chatId)} />
-          </div>
-        </div>
-      </div>
     );
   } catch (error) {
     console.error("Error in ChatPage:", error);

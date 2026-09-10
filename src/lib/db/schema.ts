@@ -35,7 +35,6 @@ export const userSubscriptions = pgTable("user_subscriptions", {
   id: serial("id").primaryKey(),
   userId: varchar("user_id", { length: 256 }).notNull().unique(),
   razorpayCustomerId: varchar("razorpay_customer_id", { length: 256 })
-    .notNull()
     .unique(),
   razorpaySubscriptionId: varchar("razorpay_subscription_id", {
     length: 256,

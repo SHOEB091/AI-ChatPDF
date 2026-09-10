@@ -7,6 +7,7 @@ import Link from "next/link";
 import { ArrowRight, LogIn, Loader2 } from "lucide-react";
 import FileUpload from "@/components/FileUpload";
 import SubscriptionButton from "@/components/SubscriptionButton";
+import { ThemeToggle } from "@/components/ThemeToggle";
 import { type DrizzleChat } from "@/lib/db/schema";
 import axios from "axios";
 
@@ -54,9 +55,14 @@ export default function Home() {
   };
 
   return (
-    <div className="w-screen min-h-screen bg-gradient-to-r from-rose-100 to-teal-100">
+    <div className="w-screen min-h-screen bg-gradient-to-r from-rose-100 to-teal-100 dark:from-gray-900 dark:to-gray-800">
+      {/* Theme Toggle - Top Right */}
+      <div className="absolute top-4 right-4 z-10">
+        <ThemeToggle variant="icon" />
+      </div>
+
       <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-2xl px-4">
-        <div className="flex flex-col items-center text-center bg-white/30 backdrop-blur-sm p-8 rounded-2xl shadow-lg">
+        <div className="flex flex-col items-center text-center bg-white/30 dark:bg-gray-800/30 backdrop-blur-sm p-8 rounded-2xl shadow-lg">
           <div className="flex items-center mb-2">
             <div className="flex items-center gap-3">
               <div className="w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center">
@@ -73,7 +79,7 @@ export default function Home() {
           </div>
           {isAuth && (
             <div className="flex items-center justify-center mt-4 mb-2">
-              <div className="flex items-center gap-4 px-4 py-2 bg-white rounded-full shadow-md">
+              <div className="flex items-center gap-4 px-4 py-2 bg-white dark:bg-gray-800 rounded-full shadow-md">
                 <UserButton
                   appearance={{
                     elements: {

@@ -32,7 +32,8 @@ export async function getEmbeddings(text: string) {
 
     console.log("Getting embeddings for text of length:", text.length);
     
-    const model = genAI.getGenerativeModel({ model: "embedding-001" });
+    // Use the correct model name format
+    const model = genAI.getGenerativeModel({ model: "models/embedding-001" });
     const result = await model.embedContent(text);
     const embedding = await result.embedding;
 
@@ -41,6 +42,9 @@ export async function getEmbeddings(text: string) {
     if (!embedding) {
       throw new Error("No embedding returned from Gemini");
     }
+
+    console.log("Embeddings type during query:", typeof embedding.values, "isArray:", Array.isArray(embedding.values));
+    console.log("Query embedding array length:", embedding.values?.length);
 
     // Convert embedding to array of numbers to match Pinecone's expected format
     return embedding.values;

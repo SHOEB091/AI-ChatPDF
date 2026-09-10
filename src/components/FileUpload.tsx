@@ -83,11 +83,11 @@ const FileUpload = () => {
     },
   });
   return (
-    <div className="p-2 bg-white rounded-xl">
+    <div className="p-2 bg-white dark:bg-gray-800 rounded-xl">
       <div
         {...getRootProps({
           className:
-            "border-dashed border-2 rounded-xl cursor-pointer bg-gray-50 py-8 flex justify-center items-center flex-col",
+            "border-dashed border-2 rounded-xl cursor-pointer bg-gray-50 dark:bg-gray-700 border-gray-300 dark:border-gray-600 py-8 flex justify-center items-center flex-col hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors",
         })}
       >
         <input {...getInputProps()} />
@@ -95,14 +95,14 @@ const FileUpload = () => {
           <>
             {/* loading state */}
             <Loader2 className="h-10 w-10 text-blue-500 animate-spin" />
-            <p className="mt-2 text-sm text-slate-400">
+            <p className="mt-2 text-sm text-slate-400 dark:text-slate-300">
               Spilling Tea to GPT...
             </p>
           </>
         ) : (
           <>
             <Inbox className="w-10 h-10 text-blue-500" />
-            <p className="mt-2 text-sm text-slate-400">Drop PDF Here</p>
+            <p className="mt-2 text-sm text-slate-400 dark:text-slate-300">Drop PDF Here</p>
           </>
         )}
       </div>
